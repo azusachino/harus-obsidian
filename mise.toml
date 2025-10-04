@@ -1,0 +1,22 @@
+[tasks.init]
+run ="""
+# init the quartz project
+bun run quartz create
+"""
+
+[tasks.build]
+run ="""
+bun run quartz build --concurrency 8
+"""
+
+[tasks.deploy]
+run = """
+echo "delete & cp from documents"
+rm -rf ~/Projects/project-github/harus-obsidian/content/*
+cp -R ~/Documents/harusObsidian/* ~/Projects/project-github/harus-obsidian/content/
+echo "bun run quartz build..."
+bun run quartz build --concurrency 8
+
+echo "rsync -avz --delete ..."
+rsync -avz --delete public/ harus-mini:/data/notes/obsidian
+"""
