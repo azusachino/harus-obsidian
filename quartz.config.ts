@@ -10,14 +10,13 @@ const config: QuartzConfig = {
   configuration: {
     pageTitle: "HarusObsidian",
     pageTitleSuffix: "",
-    enableSPA: true,
+    enableSPA: false,
     enablePopovers: true,
     analytics: {
       provider: "plausible",
     },
     locale: "en-US",
-    baseUrl: "azusachino.icu",
-    // TODO, ignore journal if needs publish
+    baseUrl: "http://harus-obsidian.harus-core.svc.cluster.local",
     ignorePatterns: ["private", "templates", ".obsidian", ".trash"],
     defaultDateType: "modified",
     theme: {

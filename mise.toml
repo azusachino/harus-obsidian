@@ -9,6 +9,12 @@ run ="""
 bun run quartz build --concurrency 8
 """
 
+[tasks.prod]
+depends = "build"
+run ="""
+sudo cp -R public/* /data/notes/obsidian
+"""
+
 [tasks.deploy]
 run = """
 echo "delete & cp from documents"
