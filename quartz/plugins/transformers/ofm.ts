@@ -166,6 +166,58 @@ export const ObsidianFlavoredMarkdown: QuartzTransformerPlugin<Partial<Options>>
         src = src.replace(commentRegex, "")
       }
 
+      // pre-transform code-block admonitions to blockquote callouts
+      if (opts.admonitions) {
+        // Match code blocks with ad-* language
+        const admonitionRegex = /```ad-([a-zA-Z0-9-]+)\n([\s\S]*?)```/g
+        src = src.replace(admonitionRegex, (_, type, content) => {
+          const lines = content.split("\n")
+          let title = ""
+          let collapse = ""
+          let contentLines: string[] = []
+
+          // Parse metadata
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i].trim()
+            if (line.startsWith("title:")) {
+              title = line.slice(6).trim()
+            } else if (line.startsWith("collapse:")) {
+              const collapseValue = line.slice(9).trim().toLowerCase()
+              if (collapseValue === "open") {
+                collapse = "+"
+              } else if (collapseValue === "closed") {
+                collapse = "-"
+              }
+            } else if (line !== "" || contentLines.length > 0) {
+              // Start collecting content after metadata
+              contentLines.push(lines[i])
+            }
+          }
+
+          // Build blockquote callout syntax
+          const calloutType = type.toLowerCase()
+          let result = `> [!${calloutType}]${collapse}`
+
+          if (title) {
+            result += ` ${title}`
+          }
+
+          result += "\n"
+
+          // Add content lines with > prefix
+          const actualContent = contentLines.join("\n").trim()
+          if (actualContent) {
+            const quotedContent = actualContent
+              .split("\n")
+              .map(line => `> ${line}`)
+              .join("\n")
+            result += quotedContent
+          }
+
+          return result
+        })
+      }
+
       // pre-transform blockquotes
       if (opts.callouts) {
         src = src.replace(calloutLineRegex, (value) => {
@@ -534,106 +586,6 @@ export const ObsidianFlavoredMarkdown: QuartzTransformerPlugin<Partial<Options>>
                     "data-clipboard": JSON.stringify(node.value),
                   },
                 }
-              }
-            })
-          }
-        })
-      }
-
-      if (opts.admonitions) {
-        plugins.push(() => {
-          return (tree: Root, _file) => {
-            visit(tree, "code", (node: Code, index, parent) => {
-              if (!node.lang || !node.lang.startsWith("ad-")) {
-                return
-              }
-
-              // Extract admonition type (e.g., "ad-note" -> "note")
-              const admonitionType = node.lang.slice(3).toLowerCase()
-              const calloutType = canonicalizeCallout(admonitionType)
-
-              // Parse the content for metadata
-              const lines = node.value.split("\n")
-              let title = ""
-              let collapse = false
-              let defaultState = "expanded"
-              let contentStartIndex = 0
-
-              // Check for metadata lines (title:, collapse:, etc.)
-              for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim()
-                if (line.startsWith("title:")) {
-                  title = line.slice(6).trim()
-                  contentStartIndex = i + 1
-                } else if (line.startsWith("collapse:")) {
-                  const collapseValue = line.slice(9).trim().toLowerCase()
-                  collapse = collapseValue === "open" || collapseValue === "closed"
-                  defaultState = collapseValue === "closed" ? "collapsed" : "expanded"
-                  contentStartIndex = i + 1
-                } else if (!line.startsWith("title:") && !line.startsWith("collapse:")) {
-                  // First non-metadata line
-                  break
-                }
-              }
-
-              // Get the content (everything after metadata)
-              const content = lines.slice(contentStartIndex).join("\n").trim()
-
-              // Use the admonition type as default title if no title is provided
-              const finalTitle = title || capitalize(admonitionType).replace(/-/g, " ")
-
-              const toggleIcon = `<div class="fold-callout-icon"></div>`
-
-              const titleHtml: Html = {
-                type: "html",
-                value: `<div class="callout-title">
-                  <div class="callout-icon"></div>
-                  <div class="callout-title-inner">${finalTitle}</div>
-                  ${collapse ? toggleIcon : ""}
-                </div>`,
-              }
-
-              const contentParagraph: Paragraph = {
-                type: "paragraph",
-                children: [
-                  {
-                    type: "text",
-                    value: content,
-                  },
-                ],
-              }
-
-              const classNames = ["callout", calloutType]
-              if (collapse) {
-                classNames.push("is-collapsible")
-              }
-              if (defaultState === "collapsed") {
-                classNames.push("is-collapsed")
-              }
-
-              // Create a blockquote node with the same structure as regular callouts
-              const blockquote: BlockContent = {
-                type: "blockquote",
-                data: {
-                  hProperties: {
-                    className: classNames.join(" "),
-                    "data-callout": calloutType,
-                    "data-callout-fold": collapse,
-                  },
-                },
-                children: [
-                  titleHtml,
-                  {
-                    data: { hProperties: { className: ["callout-content"] }, hName: "div" },
-                    type: "blockquote",
-                    children: [contentParagraph],
-                  },
-                ],
-              }
-
-              // Replace the code block with the blockquote
-              if (parent && index !== undefined) {
-                parent.children.splice(index, 1, blockquote)
               }
             })
           }

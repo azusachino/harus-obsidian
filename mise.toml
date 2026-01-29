@@ -12,6 +12,11 @@ run ="""
 bun run quartz build --concurrency 8
 """
 
+[tasks.local]
+run = """
+bun run quartz build --serve
+"""
+
 [tasks.update]
 run ="""
 bun run quartz update
