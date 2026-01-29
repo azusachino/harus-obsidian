@@ -42,6 +42,7 @@ export interface Options {
   enableVideoEmbed: boolean
   enableCheckbox: boolean
   disableBrokenWikilinks: boolean
+  admonitions: boolean
 }
 
 const defaultOptions: Options = {
@@ -58,6 +59,7 @@ const defaultOptions: Options = {
   enableVideoEmbed: true,
   enableCheckbox: false,
   disableBrokenWikilinks: false,
+  admonitions: true,
 }
 
 const calloutMapping = {
@@ -532,6 +534,106 @@ export const ObsidianFlavoredMarkdown: QuartzTransformerPlugin<Partial<Options>>
                     "data-clipboard": JSON.stringify(node.value),
                   },
                 }
+              }
+            })
+          }
+        })
+      }
+
+      if (opts.admonitions) {
+        plugins.push(() => {
+          return (tree: Root, _file) => {
+            visit(tree, "code", (node: Code, index, parent) => {
+              if (!node.lang || !node.lang.startsWith("ad-")) {
+                return
+              }
+
+              // Extract admonition type (e.g., "ad-note" -> "note")
+              const admonitionType = node.lang.slice(3).toLowerCase()
+              const calloutType = canonicalizeCallout(admonitionType)
+
+              // Parse the content for metadata
+              const lines = node.value.split("\n")
+              let title = ""
+              let collapse = false
+              let defaultState = "expanded"
+              let contentStartIndex = 0
+
+              // Check for metadata lines (title:, collapse:, etc.)
+              for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim()
+                if (line.startsWith("title:")) {
+                  title = line.slice(6).trim()
+                  contentStartIndex = i + 1
+                } else if (line.startsWith("collapse:")) {
+                  const collapseValue = line.slice(9).trim().toLowerCase()
+                  collapse = collapseValue === "open" || collapseValue === "closed"
+                  defaultState = collapseValue === "closed" ? "collapsed" : "expanded"
+                  contentStartIndex = i + 1
+                } else if (!line.startsWith("title:") && !line.startsWith("collapse:")) {
+                  // First non-metadata line
+                  break
+                }
+              }
+
+              // Get the content (everything after metadata)
+              const content = lines.slice(contentStartIndex).join("\n").trim()
+
+              // Use the admonition type as default title if no title is provided
+              const finalTitle = title || capitalize(admonitionType).replace(/-/g, " ")
+
+              const toggleIcon = `<div class="fold-callout-icon"></div>`
+
+              const titleHtml: Html = {
+                type: "html",
+                value: `<div class="callout-title">
+                  <div class="callout-icon"></div>
+                  <div class="callout-title-inner">${finalTitle}</div>
+                  ${collapse ? toggleIcon : ""}
+                </div>`,
+              }
+
+              const contentParagraph: Paragraph = {
+                type: "paragraph",
+                children: [
+                  {
+                    type: "text",
+                    value: content,
+                  },
+                ],
+              }
+
+              const classNames = ["callout", calloutType]
+              if (collapse) {
+                classNames.push("is-collapsible")
+              }
+              if (defaultState === "collapsed") {
+                classNames.push("is-collapsed")
+              }
+
+              // Create a blockquote node with the same structure as regular callouts
+              const blockquote: BlockContent = {
+                type: "blockquote",
+                data: {
+                  hProperties: {
+                    className: classNames.join(" "),
+                    "data-callout": calloutType,
+                    "data-callout-fold": collapse,
+                  },
+                },
+                children: [
+                  titleHtml,
+                  {
+                    data: { hProperties: { className: ["callout-content"] }, hName: "div" },
+                    type: "blockquote",
+                    children: [contentParagraph],
+                  },
+                ],
+              }
+
+              // Replace the code block with the blockquote
+              if (parent && index !== undefined) {
+                parent.children.splice(index, 1, blockquote)
               }
             })
           }
