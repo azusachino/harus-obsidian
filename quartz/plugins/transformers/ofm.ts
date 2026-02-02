@@ -175,23 +175,35 @@ export const ObsidianFlavoredMarkdown: QuartzTransformerPlugin<Partial<Options>>
           let title = ""
           let collapse = ""
           let contentLines: string[] = []
+          let inMetadata = true
 
-          // Parse metadata
+          // Parse metadata and collect content
           for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim()
-            if (line.startsWith("title:")) {
-              title = line.slice(6).trim()
-            } else if (line.startsWith("collapse:")) {
-              const collapseValue = line.slice(9).trim().toLowerCase()
-              if (collapseValue === "open") {
-                collapse = "+"
-              } else if (collapseValue === "closed") {
-                collapse = "-"
+
+            if (inMetadata) {
+              if (line.startsWith("title:")) {
+                title = line.slice(6).trim()
+                continue
+              } else if (line.startsWith("collapse:")) {
+                const collapseValue = line.slice(9).trim().toLowerCase()
+                if (collapseValue === "open") {
+                  collapse = "+"
+                } else if (collapseValue === "closed") {
+                  collapse = "-"
+                }
+                continue
+              } else if (line === "") {
+                // Empty line after metadata, skip it
+                continue
+              } else {
+                // First non-metadata, non-empty line - end of metadata section
+                inMetadata = false
               }
-            } else if (line !== "" || contentLines.length > 0) {
-              // Start collecting content after metadata
-              contentLines.push(lines[i])
             }
+
+            // Collect content lines (preserve original indentation)
+            contentLines.push(lines[i])
           }
 
           // Build blockquote callout syntax
@@ -204,10 +216,15 @@ export const ObsidianFlavoredMarkdown: QuartzTransformerPlugin<Partial<Options>>
 
           result += "\n"
 
+          // Clean up content: remove leading/trailing empty lines, collapse multiple blank lines
+          let cleanedContent = contentLines.join("\n").trim()
+
+          // Reduce multiple consecutive blank lines to maximum 2 (one visual blank line)
+          cleanedContent = cleanedContent.replace(/\n\s*\n\s*\n+/g, "\n\n")
+
           // Add content lines with > prefix
-          const actualContent = contentLines.join("\n").trim()
-          if (actualContent) {
-            const quotedContent = actualContent
+          if (cleanedContent) {
+            const quotedContent = cleanedContent
               .split("\n")
               .map(line => `> ${line}`)
               .join("\n")
