@@ -223,10 +223,16 @@ export const ObsidianFlavoredMarkdown: QuartzTransformerPlugin<Partial<Options>>
           cleanedContent = cleanedContent.replace(/\n\s*\n\s*\n+/g, "\n\n")
 
           // Add content lines with > prefix
+          // Use hard line breaks (two trailing spaces) to preserve line breaks
+          // from the original admonition, where each newline is significant
           if (cleanedContent) {
             const quotedContent = cleanedContent
               .split("\n")
-              .map(line => `> ${line}`)
+              .map((line) => {
+                const trimmed = line.trim()
+                // Add two trailing spaces for hard line break on non-empty lines
+                return trimmed ? `> ${line}  ` : `> `
+              })
               .join("\n")
             result += quotedContent
           }

@@ -14,28 +14,10 @@ bun run quartz build --concurrency 8
 
 [tasks.local]
 run = """
-bun run quartz build --serve
+bun run quartz build --concurrency 8 --serve
 """
 
 [tasks.update]
 run ="""
 bun run quartz update
-"""
-
-[tasks.prod]
-depends = "build"
-run ="""
-sudo cp -R public/* /data/notes/obsidian
-"""
-
-[tasks.deploy]
-run = """
-echo "delete & cp from documents"
-rm -rf ~/Projects/project-github/harus-obsidian/content/*
-cp -R ~/Documents/harusObsidian/* ~/Projects/project-github/harus-obsidian/content/
-echo "bun run quartz build..."
-bun run quartz build --concurrency 8
-
-echo "rsync -avz --delete ..."
-rsync -avz --delete public/ harus-mini:/data/notes/obsidian
 """
