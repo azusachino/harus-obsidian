@@ -150,6 +150,131 @@ const wikilinkImageEmbedRegex = new RegExp(
   /^(?<alt>(?!^\d*x?\d*$).*?)?(\|?\s*?(?<width>\d+)(x(?<height>\d+))?)?$/,
 )
 
+/**
+ * Transform code-block admonitions (```ad-note, ````ad-warning, etc.) to blockquote callouts.
+ * Uses line-by-line parsing to correctly handle:
+ * - Variable backtick counts (3+) for fenced code blocks
+ * - Nested code blocks inside admonitions (use 4+ backticks for outer fence)
+ * - Regular code blocks that happen to contain ad-* syntax (not transformed)
+ */
+function transformAdmonitions(src: string): string {
+  const lines = src.split("\n")
+  const result: string[] = []
+  let i = 0
+
+  while (i < lines.length) {
+    // Check for tilde fence (skip entirely, not used for admonitions)
+    const tildeFenceMatch = lines[i].match(/^(~{3,})/)
+    if (tildeFenceMatch) {
+      const tildeCount = tildeFenceMatch[1].length
+      result.push(lines[i])
+      i++
+      while (i < lines.length) {
+        result.push(lines[i])
+        const closingTilde = lines[i].match(/^(~+)\s*$/)
+        if (closingTilde && closingTilde[1].length >= tildeCount) {
+          i++
+          break
+        }
+        i++
+      }
+      continue
+    }
+
+    // Check for backtick fence
+    const fenceMatch = lines[i].match(/^(`{3,})(.*)$/)
+    if (fenceMatch) {
+      const backtickCount = fenceMatch[1].length
+      const info = fenceMatch[2].trim()
+
+      // Find the closing fence (same or more backticks, nothing else on line)
+      let closingLine = -1
+      for (let j = i + 1; j < lines.length; j++) {
+        const closingMatch = lines[j].match(/^(`+)\s*$/)
+        if (closingMatch && closingMatch[1].length >= backtickCount) {
+          closingLine = j
+          break
+        }
+      }
+
+      if (closingLine === -1) {
+        // No closing fence found, output line as-is
+        result.push(lines[i])
+        i++
+        continue
+      }
+
+      const adMatch = info.match(/^ad-([a-zA-Z0-9-]+)$/)
+      if (adMatch) {
+        // Transform admonition to blockquote callout
+        const type = adMatch[1]
+        const contentLines = lines.slice(i + 1, closingLine)
+        result.push(...buildAdmonitionCallout(type, contentLines))
+        i = closingLine + 1
+      } else {
+        // Regular code block - output as-is
+        for (let k = i; k <= closingLine; k++) {
+          result.push(lines[k])
+        }
+        i = closingLine + 1
+      }
+    } else {
+      result.push(lines[i])
+      i++
+    }
+  }
+
+  return result.join("\n")
+}
+
+function buildAdmonitionCallout(type: string, lines: string[]): string[] {
+  let title = ""
+  let collapse = ""
+  const contentLines: string[] = []
+  let inMetadata = true
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim()
+
+    if (inMetadata) {
+      if (line.startsWith("title:")) {
+        title = line.slice(6).trim()
+        continue
+      } else if (line.startsWith("collapse:")) {
+        const collapseValue = line.slice(9).trim().toLowerCase()
+        if (collapseValue === "open") collapse = "+"
+        else if (collapseValue === "closed") collapse = "-"
+        continue
+      } else if (line === "") {
+        continue
+      } else {
+        inMetadata = false
+      }
+    }
+
+    contentLines.push(lines[i])
+  }
+
+  const calloutType = type.toLowerCase()
+  let header = `> [!${calloutType}]${collapse}`
+  if (title) header += ` ${title}`
+
+  const result: string[] = [header]
+
+  let cleanedContent = contentLines.join("\n").trim()
+  cleanedContent = cleanedContent.replace(/\n\s*\n\s*\n+/g, "\n\n")
+
+  if (cleanedContent) {
+    const quotedLines = cleanedContent.split("\n").map((line) => {
+      const trimmed = line.trim()
+      return trimmed ? `> ${line}  ` : `> `
+    })
+    result.push(...quotedLines)
+  }
+
+  return result
+}
+
 export const ObsidianFlavoredMarkdown: QuartzTransformerPlugin<Partial<Options>> = (userOpts) => {
   const opts = { ...defaultOptions, ...userOpts }
 
@@ -168,77 +293,7 @@ export const ObsidianFlavoredMarkdown: QuartzTransformerPlugin<Partial<Options>>
 
       // pre-transform code-block admonitions to blockquote callouts
       if (opts.admonitions) {
-        // Match code blocks with ad-* language
-        const admonitionRegex = /```ad-([a-zA-Z0-9-]+)\n([\s\S]*?)```/g
-        src = src.replace(admonitionRegex, (_, type, content) => {
-          const lines = content.split("\n")
-          let title = ""
-          let collapse = ""
-          let contentLines: string[] = []
-          let inMetadata = true
-
-          // Parse metadata and collect content
-          for (let i = 0; i < lines.length; i++) {
-            const line = lines[i].trim()
-
-            if (inMetadata) {
-              if (line.startsWith("title:")) {
-                title = line.slice(6).trim()
-                continue
-              } else if (line.startsWith("collapse:")) {
-                const collapseValue = line.slice(9).trim().toLowerCase()
-                if (collapseValue === "open") {
-                  collapse = "+"
-                } else if (collapseValue === "closed") {
-                  collapse = "-"
-                }
-                continue
-              } else if (line === "") {
-                // Empty line after metadata, skip it
-                continue
-              } else {
-                // First non-metadata, non-empty line - end of metadata section
-                inMetadata = false
-              }
-            }
-
-            // Collect content lines (preserve original indentation)
-            contentLines.push(lines[i])
-          }
-
-          // Build blockquote callout syntax
-          const calloutType = type.toLowerCase()
-          let result = `> [!${calloutType}]${collapse}`
-
-          if (title) {
-            result += ` ${title}`
-          }
-
-          result += "\n"
-
-          // Clean up content: remove leading/trailing empty lines, collapse multiple blank lines
-          let cleanedContent = contentLines.join("\n").trim()
-
-          // Reduce multiple consecutive blank lines to maximum 2 (one visual blank line)
-          cleanedContent = cleanedContent.replace(/\n\s*\n\s*\n+/g, "\n\n")
-
-          // Add content lines with > prefix
-          // Use hard line breaks (two trailing spaces) to preserve line breaks
-          // from the original admonition, where each newline is significant
-          if (cleanedContent) {
-            const quotedContent = cleanedContent
-              .split("\n")
-              .map((line) => {
-                const trimmed = line.trim()
-                // Add two trailing spaces for hard line break on non-empty lines
-                return trimmed ? `> ${line}  ` : `> `
-              })
-              .join("\n")
-            result += quotedContent
-          }
-
-          return result
-        })
+        src = transformAdmonitions(src)
       }
 
       // pre-transform blockquotes
