@@ -1,23 +1,2 @@
 [tools]
 bun = "latest"
-
-[tasks.init]
-run ="""
-# init the quartz project
-bun run quartz create
-"""
-
-[tasks.build]
-run ="""
-bun run quartz build --concurrency 8
-"""
-
-[tasks.local]
-run = """
-bun run quartz build --concurrency 8 --serve
-"""
-
-[tasks.update]
-run ="""
-bun run quartz update
-"""
