@@ -49,7 +49,9 @@ async function generateSocialImage(
     iconBase64,
   })
 
-  const svg = await satori(imageComponent, {
+  // satori >=0.26 types its first arg as React's ReactNode; our preact VNode is
+  // structurally compatible but not assignable, so cast to satori's expected type.
+  const svg = await satori(imageComponent as Parameters<typeof satori>[0], {
     width,
     height,
     fonts,
