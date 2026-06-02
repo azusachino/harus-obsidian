@@ -118,7 +118,14 @@ button.desktop-explorer {
     list-style: none;
     margin: 0;
     padding: 0;
-    overscroll-behavior: contain;
+
+    // Only the scroll container itself should contain overscroll. Applying this
+    // to nested folder <ul>s (which are overflow:hidden scroll containers) traps
+    // wheel events and prevents them chaining to .explorer-ul, freezing scroll
+    // when the pointer is over items in expanded folders.
+    &.explorer-ul {
+      overscroll-behavior: contain;
+    }
 
     & li > a {
       color: var(--dark);
