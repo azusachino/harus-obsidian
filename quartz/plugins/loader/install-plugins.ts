@@ -1,10 +1,43 @@
 #!/usr/bin/env node
+import fs from "fs"
+import path from "path"
+import YAML from "yaml"
 import { installPlugins, parsePluginSource } from "./gitLoader.js"
-import config from "../../../quartz.js"
+import { PluginSource, QuartzPluginsJson } from "./types.js"
+
+const CONFIG_YAML_PATH = path.join(process.cwd(), "quartz.config.yaml")
+const DEFAULT_CONFIG_YAML_PATH = path.join(process.cwd(), "quartz.config.default.yaml")
+
+function sourceKey(source: PluginSource): string {
+  return typeof source === "string" ? source : JSON.stringify(source)
+}
+
+function readPluginSources(): PluginSource[] {
+  const configPath = fs.existsSync(CONFIG_YAML_PATH) ? CONFIG_YAML_PATH : DEFAULT_CONFIG_YAML_PATH
+  if (!fs.existsSync(configPath)) {
+    return []
+  }
+
+  const raw = fs.readFileSync(configPath, "utf-8")
+  const quartzConfig = YAML.parse(raw) as QuartzPluginsJson
+  const seen = new Set<string>()
+  const sources: PluginSource[] = []
+
+  for (const entry of quartzConfig.plugins ?? []) {
+    if (!entry.enabled) continue
+
+    const key = sourceKey(entry.source)
+    if (seen.has(key)) continue
+
+    seen.add(key)
+    sources.push(entry.source)
+  }
+
+  return sources
+}
 
 async function main() {
-  const quartzConfig: any = config
-  const externalPlugins = quartzConfig.externalPlugins || []
+  const externalPlugins = readPluginSources()
 
   if (externalPlugins.length === 0) {
     console.log("No external plugins to install.")
@@ -13,7 +46,7 @@ async function main() {
 
   console.log(`Installing ${externalPlugins.length} plugin(s) from Git...`)
 
-  const specs = externalPlugins.map((source: string) => parsePluginSource(source))
+  const specs = externalPlugins.map((source) => parsePluginSource(source))
   const installed = await installPlugins(specs, { verbose: true })
 
   if (installed.size === externalPlugins.length) {
