@@ -1,9 +1,9 @@
-# Quartz task runner. mise manages tools; make runs tasks.
+# Quartz task runner. Nix provides tools; Bun runs Quartz tasks.
 
 PORT        ?= 8080
 WS_PORT     ?= 3001
 CONCURRENCY ?= 8
-QUARTZ      := npx quartz
+QUARTZ      := bun run quartz
 
 .DEFAULT_GOAL := help
 
@@ -22,16 +22,16 @@ serve: ## Build and serve on all interfaces (0.0.0.0 / ::1), default port 8080
 local: serve ## Alias for serve
 
 check: ## Type-check and verify formatting
-	npm run check
+	bun run check
 
 format: ## Auto-format with Prettier
-	npm run format
+	bun run format
 
 test: ## Run tests
-	npm run test
+	bun run test
 
 install-plugins: ## Install plugins from quartz.config.yaml
-	npm run install-plugins
+	bun run install-plugins
 
 update: ## Update Quartz from upstream
 	$(QUARTZ) update
