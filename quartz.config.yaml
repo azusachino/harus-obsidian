@@ -4,9 +4,7 @@ configuration:
   pageTitleSuffix: ""
   enableSPA: true
   enablePopovers: true
-  analytics:
-    provider: plausible
-  locale: en-US
+  locale: zh-CN
   baseUrl: harus-obsidian.harus-core.svc.cluster.local
   ignorePatterns:
     - private
@@ -14,8 +12,8 @@ configuration:
     - .obsidian
     - .trash
   theme:
-    fontOrigin: googleFonts
-    cdnCaching: true
+    fontOrigin: local
+    cdnCaching: false
     typography:
       header: Schibsted Grotesk
       body: Source Sans Pro
@@ -115,7 +113,7 @@ plugins:
   - source: github:quartz-community/favicon
     enabled: true
   - source: github:quartz-community/og-image
-    enabled: true
+    enabled: false
   - source: github:quartz-community/cname
     enabled: false
   - source: github:quartz-community/canvas-page
@@ -201,7 +199,7 @@ plugins:
       links:
         GitHub: https://github.com/azusachino
   - source: github:quartz-community/recent-notes
-    enabled: false
+    enabled: true
   - source: github:quartz-community/spacer
     enabled: true
     options: {}
@@ -215,13 +213,15 @@ plugins:
     options: {}
     order: 50
   - source: github:quartz-community/note-properties
-    enabled: false
+    enabled: true
     options:
       includeAll: false
       includedProperties:
         - description
-        - tags
         - aliases
+        - author
+        - status
+        - source
       excludedProperties: []
       hidePropertiesView: false
       delimiters: ---
