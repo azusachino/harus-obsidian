@@ -5,7 +5,7 @@ configuration:
   enableSPA: true
   enablePopovers: true
   locale: zh-CN
-  baseUrl: kb.h.azusachino.icu
+  baseUrl: kb.h.azusachino.com
   ignorePatterns:
     - private
     - templates
