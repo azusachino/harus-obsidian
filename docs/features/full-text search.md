@@ -18,7 +18,7 @@ This component is also keyboard accessible: Tab and Shift+Tab will cycle forward
 > [!info]
 > Search requires the `ContentIndex` emitter plugin to be present in the [[configuration]].
 
-### Indexing Behaviour
+## Indexing Behaviour
 
 By default, it indexes every page on the site with **Markdown syntax removed**. This means link URLs for instance are not indexed.
 

@@ -68,7 +68,7 @@ This plugin accepts the following configuration options:
 
 Fonts are resolved using a priority chain:
 
-```
+```text
 User config (plugin options)
   → Theme fonts (from Quartz Themes, if installed)
     → Obsidian defaults (system font stacks)
@@ -76,13 +76,13 @@ User config (plugin options)
 
 For individual headings:
 
-```
+```text
 h1 option → header option → theme --h1-font → theme font → Obsidian default
 ```
 
 For the site title:
 
-```
+```text
 title option → header option → theme font → Obsidian default
 ```
 

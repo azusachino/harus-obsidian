@@ -22,7 +22,7 @@ This plugin accepts the following configuration options:
 - `minZoom`: The minimum zoom level allowed when zooming out. Default: `0.1{:ts}`.
 - `maxZoom`: The maximum zoom level allowed when zooming in. Default: `5{:ts}`.
 
-### Canvas Frame
+## Canvas Frame
 
 The canvas-page plugin provides its own `"canvas"` page frame via the [[layout#Page Frames|Frame Registry]]. This frame:
 

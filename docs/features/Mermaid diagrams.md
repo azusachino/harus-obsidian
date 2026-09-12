@@ -15,7 +15,7 @@ By default, Quartz will render Mermaid diagrams to match the site theme.
 
 To add a Mermaid diagram, create a mermaid code block.
 
-````
+````text
 ```mermaid
 sequenceDiagram
     Alice->>+John: Hello John, how are you?

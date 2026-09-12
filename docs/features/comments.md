@@ -174,7 +174,7 @@ export const layout = await loadQuartzLayout({
 
 Quartz can conditionally display the comment box based on a field `comments` in the frontmatter. By default, all pages will display comments, to disable it for a specific page, set `comments` to `false`.
 
-```
+```text
 ---
 title: Comments disabled here!
 comments: false

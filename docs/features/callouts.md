@@ -11,7 +11,7 @@ This includes
 - 12 Distinct callout types (each with several aliases)
 - Collapsable callouts
 
-```
+```text
 > [!info] Title
 > This is a callout!
 ```

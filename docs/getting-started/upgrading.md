@@ -28,7 +28,7 @@ npx quartz plugin install --latest
 
 See the [[upgrade|CLI reference for upgrade]] for more details on available flags.
 
-### Layout System Changes
+## Layout System Changes
 
 The `footer` layout slot is now an array of components, consistent with other layout slots like `header`, `left`, and `right`. Additionally, `header` and `footer` are now configurable layout positions — plugins can declare `layout: { position: header }` or `layout: { position: footer }` in their YAML config.
 

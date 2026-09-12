@@ -58,7 +58,7 @@ Quartz v5 separates shared code into three community packages, each with a disti
 - **`@quartz-community/utils`** — Shared utility functions (path manipulation, DOM helpers, sorting, date formatting, JSX conversion, etc.). Depends on `@quartz-community/types`.
 - **`@quartz-community/runtime`** — Browser-only utilities for client-side scripts (event handling, navigation, storage, script loading). Depends on both `types` and `utils`.
 
-```
+```text
 types (no deps)
   ↑
 utils (depends on types)

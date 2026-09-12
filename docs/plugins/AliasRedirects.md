@@ -14,7 +14,7 @@ This plugin emits HTML redirect pages so that old URLs redirect to the canonical
 1. **Frontmatter aliases**: Redirect pages for aliases defined in your content's frontmatter.
 2. **Case-preserving redirects**: Automatic redirect pages for URLs that changed due to Quartz v5's lowercase slug normalization.
 
-### Frontmatter Aliases
+## Frontmatter Aliases
 
 If `foo.md` has the following frontmatter:
 

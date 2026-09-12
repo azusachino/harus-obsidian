@@ -116,7 +116,7 @@ layout:
         right: []
 ```
 
-### Conditional Rendering
+## Conditional Rendering
 
 Plugins can specify a `condition` in their layout block to control when they appear. This uses built-in presets:
 

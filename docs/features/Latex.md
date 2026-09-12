@@ -12,7 +12,7 @@ Quartz uses [Katex](https://katex.org/) by default to typeset both inline and bl
 
 Block math can be rendered by delimiting math expression with `$$`.
 
-```
+```text
 $$
 f(x) = \int_{-\infty}^\infty
     f\hat(\xi),e^{2 \pi i \xi x}

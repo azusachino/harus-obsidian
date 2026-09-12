@@ -17,7 +17,7 @@ In short, it generates HTML that looks exactly like your code in an editor like 
 
 Text inside `backticks` on a line will be formatted like code.
 
-````
+````text
 ```ts
 export function trimPathSuffix(fp: string): string {
   fp = clientSideSlug(fp)
@@ -43,7 +43,7 @@ export function trimPathSuffix(fp: string): string {
 
 Add a file title to your code block, with text inside double quotes (`""`):
 
-````
+````text
 ```js title="..."
 
 ```
@@ -63,7 +63,7 @@ export function trimPathSuffix(fp: string): string {
 
 Place a numeric range inside `{}`.
 
-````
+````text
 ```js {1-3,4}
 
 ```
@@ -83,7 +83,7 @@ export function trimPathSuffix(fp: string): string {
 
 A series of characters, like a literal regex.
 
-````
+````text
 ```js /useState/
 const [age, setAge] = useState(50);
 const [name, setName] = useState('Taylor');
@@ -99,7 +99,7 @@ const [name, setName] = useState("Taylor")
 
 Append {:lang} to the end of inline code to highlight it like a regular code block.
 
-```
+```text
 This is an array `[1, 2, 3]{:js}` of numbers 1 through 3.
 ```
 
@@ -109,7 +109,7 @@ This is an array `[1, 2, 3]{:js}` of numbers 1 through 3.
 
 Syntax highlighting has line numbers configured automatically. If you want to start line numbers at a specific number, use `showLineNumbers{number}`:
 
-````
+````text
 ```js showLineNumbers{number}
 
 ```
@@ -129,7 +129,7 @@ export function trimPathSuffix(fp: string): string {
 
 You can format a codeblock inside of a codeblock by wrapping it with another level of backtick fences that has one more backtick than the previous fence.
 
-`````
+`````text
 ````
 ```js /useState/
 const [age, setAge] = useState(50);

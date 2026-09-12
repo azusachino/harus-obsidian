@@ -50,7 +50,7 @@ The template provides the build configuration (`tsup.config.ts`), TypeScript set
 
 The basic file structure of a plugin is as follows:
 
-```
+```text
 my-plugin/
 ├── src/
 │   └── index.ts          # Plugin entry point
@@ -598,7 +598,7 @@ Plugins should provide their own translations for user-facing strings. Do **not*
 
 Create the following structure:
 
-```
+```text
 src/i18n/
 ├── index.ts
 └── locales/

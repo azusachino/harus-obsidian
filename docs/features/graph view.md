@@ -88,4 +88,4 @@ When passing in your own options, you can omit any or all of these fields if you
 Want to customize it even more?
 
 - Removing graph view: remove the `graph` entry from `quartz.config.yaml` or set `enabled: false`
-- Component source: https://github.com/quartz-community/graph
+- Component source: <https://github.com/quartz-community/graph>
